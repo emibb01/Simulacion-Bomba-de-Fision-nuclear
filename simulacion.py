@@ -3,6 +3,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import scipy
+import math
+
 
 
 #Variables for the simulation
@@ -54,7 +56,19 @@ Vz = np.full(N_initial, N_speed)  # Velocity of z
 for t in np.arange(Ti, Tmax - deltat, deltat): # Loop through the time steps
     while N_Live_new < 1e5: # Stop when the number of live
         # neutron are bigger than 1x10^{5}
-        
-        
-        
+        Neutron_x_d2=x/IN_distence # X neutron position in terms of inter nucleaer distance (d).
+        Neutron_y_d2=y/IN_distence
+        Neutron_z_d2=x/IN_distence
+
+        Max_Neutron_x_d = np.ceil(Neutron_x_d2) #Max integer number for x values (nuclei poition)
+        Min_Neutron_x_d= np.floor(Neutron_x_d2) #Min integer number for x values (nuclei poition)
+
+        Max_Neutron_y_d = np.ceil(Neutron_x_d2)
+        Min_Neutron_y_d= np.floor(Neutron_x_d2)
+
+        Max_Neutron_z_d = np.ceil(Neutron_x_d2)
+        Min_Neutron_z_d= np.floor(Neutron_x_d2)
+
+        Distance=np.sqrt((x-(Max_Neutron_x_d*IN_distence))**2+(y-(Max_Neutron_y_d*IN_distence))**2+(z-(Max_Neutron_z_d*IN_distence))**2)
+
         break  # Remove this line after implementing actual operations
