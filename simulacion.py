@@ -28,6 +28,7 @@ counter=0 #counter for arrays
 Nuclei_in_CR=(4/3)*np.pi*(No_of_nuclei_D/2)**3 # number of nuclei in the core radius
 deltat=0.5  # time step.
 n=0
+N_Live_new = 0  # Number of live neutrons in the core
 
     # Generating random radial angles between 0 and 2π
 phi = 2 * np.pi * np.random.rand(N_initial, 1)
@@ -50,12 +51,15 @@ cordenates=[x, y, z] #contains the Cartesian coordinates
 Vx = np.full(N_initial, N_speed)  # Velocity of x
 Vy = np.full(N_initial, N_speed)  # Velocity of y
 Vz = np.full(N_initial, N_speed)  # Velocity of z
-TimeSteps=int((Tmax - Ti) / deltat)
+TimeSteps=math.ceil((Tmax - Ti) / deltat)
 LiveNeutronsOverTime=np.zeros(TimeSteps)
+x_position=np.zeros(TimeSteps)
+y_position=np.zeros(TimeSteps)
+z_position=np.zeros(TimeSteps)
 #Start of simulation
 
 for t in np.arange(Ti, Tmax, deltat): # Loop through the time steps
-    while N_Live_new < 1e5: # Stop when the number of live
+    while N_Live_new < 1e1000 and counter < TimeSteps: # Stop when the number of live
         # neutron are bigger than 1x10^{5}
         Neutron_x_d2=x/IN_distence # X neutron position in terms of inter nucleaer distance (d).
         Neutron_y_d2=y/IN_distence
@@ -64,11 +68,11 @@ for t in np.arange(Ti, Tmax, deltat): # Loop through the time steps
         Max_Neutron_x_d = np.ceil(Neutron_x_d2) #Max integer number for x values (nuclei poition)
         Min_Neutron_x_d= np.floor(Neutron_x_d2) #Min integer number for x values (nuclei poition)
 
-        Max_Neutron_y_d = np.ceil(Neutron_x_d2)
-        Min_Neutron_y_d= np.floor(Neutron_x_d2)
+        Max_Neutron_y_d = np.ceil(Neutron_y_d2)
+        Min_Neutron_y_d= np.floor(Neutron_y_d2)
 
-        Max_Neutron_z_d = np.ceil(Neutron_x_d2)
-        Min_Neutron_z_d= np.floor(Neutron_x_d2)
+        Max_Neutron_z_d = np.ceil(Neutron_z_d2)
+        Min_Neutron_z_d= np.floor(Neutron_z_d2)
 
         DistanceA=np.sqrt((x-(Max_Neutron_x_d*IN_distence))**2+(y-(Max_Neutron_y_d*IN_distence))**2+(z-(Max_Neutron_z_d*IN_distence))**2)
 
@@ -103,20 +107,45 @@ for t in np.arange(Ti, Tmax, deltat): # Loop through the time steps
             n=np.random.rand()
         
         if n<Fission_CS/CS_total: #if true the collision is declared a fission event (appox 0.217) 
-            N_Live_new=N_initial+N_PerFission
-            np.append(x,3354e-15)
-            np.append(y,2502e-15)
-            np.append(z,1564e-15)
+            N_Live_new+=N_PerFission
             
-            np.append(x,N_speed*np.random.rand())
-            np.append(y,N_speed*np.random.rand())
-            np.append(z,N_speed*np.random.rand())
+            np.append(Vx,N_speed*np.random.rand())
+            np.append(Vy,N_speed*np.random.rand())
+            np.append(Vz,N_speed*np.random.rand())
         
-        
+            x_position[counter]=x[0]
+            y_position[counter]=y[0]
+            z_position[counter]=z[0]
+            
             LiveNeutronsOverTime[counter]=N_Live_new
             N_initial=N_Live_new
             counter+=1
-        
+
+            
         else:
-            continue #Agregar el proceso de scattering
-    break  # Remove this line after implementing actual operations
+            np.append(x,N_speed*np.random.rand())
+            np.append(y,N_speed*np.random.rand())
+            np.append(z,N_speed*np.random.rand())
+            
+            x_new=x[0]+(Vx[-1]*deltat)
+            y_new=y[0]+(Vy[-1]*deltat)
+            z_new=z[0]+(Vz[-1]*deltat)
+            
+            x_position[counter]=x_new
+            y_position[counter]=y_new
+            z_position[counter]=z_new
+            
+            x[0], y[0], z[0] = x_new, y_new, z_new
+            
+            counter+=1
+            
+time = np.linspace(0, TimeSteps * deltat, TimeSteps)
+LogLiveNeutronsOverTime=np.log(LiveNeutronsOverTime)
+plt.figure(figsize=(10, 6))
+plt.plot(time, LogLiveNeutronsOverTime, label="Live Neutrons Over Time", color="blue")
+plt.xlabel("Time (s)")
+plt.ylabel("Number of Live Neutrons")
+plt.title("Live Neutrons Over Time")
+plt.legend()
+plt.grid()
+plt.show()
